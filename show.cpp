@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "history.h"
@@ -31,7 +32,7 @@ int main( int argc, char* const argv[] ) {
 	try {
 		vector<Entry> es = getHistory( fd );
 		cout << "history:\n";
-		for( Entry i : es )
+		for( Entry &i : es )
 			dumpEntry( i );
 		Entry e = getCurrent( fd );
 		bool nocommit = false;
@@ -40,7 +41,7 @@ int main( int argc, char* const argv[] ) {
 		else if( memcmp( &e, &es.back(), sizeof( Entry ) ) != 0 )
 			nocommit = true;
 		if( nocommit ) {
-			cout << "\nnot comitted:\n";
+			cout << "\nnot committed:\n";
 			dumpEntry( e );
 		}
 	}
