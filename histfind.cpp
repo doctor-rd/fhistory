@@ -14,31 +14,29 @@
 
 using namespace std;
 
-list<vector<Entry>> after;
 list<vector<Entry>> before;
+list<vector<Entry>> since;
 
 void usage( char* name ) {
 	printf( "Usage: %s [OPTIONS] [[--] COMMAND]\n"
 	"Results maybe appended as arguments to COMMAND.\n"
 	"\t-h\n\t\tThis\n"
-	"\t-a FILENAME\n\t\tRestrict to files after FILENAME.\n"
 	"\t-b FILENAME\n\t\tRestrict to files before FILENAME.\n"
+	"\t-s FILENAME\n\t\tRestrict to files since FILENAME.\n"
 	"\t-r FILENAME\n\t\tRestrict to files related to FILENAME.\n"
 	, name );
 }
 
 bool matches( vector<Entry> &h ) {
 	int l = h.size();
-	for( vector<Entry> &i : after ) {
-		if( l <= i.size() )
-			return false;
-		if( !( i <= h ) )
-			return false;
-	}
 	for( vector<Entry> &i : before ) {
 		if( l >= i.size() )
 			return false;
 		if( !( h <= i ) )
+			return false;
+	}
+	for( vector<Entry> &i : since ) {
+		if( !( i <= h ) )
 			return false;
 	}
 	return true;
@@ -47,14 +45,14 @@ bool matches( vector<Entry> &h ) {
 int main( int argc, char* const argv[] ) {
 	int opt;
 
-	while( ( opt = getopt( argc, argv, "ha:b:r:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "hb:s:r:" ) ) != -1 ) {
 		int fd;
 		switch( opt ) {
 		case 'h':
 			usage( argv[0] );
 			return 1;
-		case 'a':
 		case 'b':
+		case 's':
 		case 'r':
 			fd = open( optarg, 0 );
 			if( fd == -1 ) {
@@ -64,11 +62,11 @@ int main( int argc, char* const argv[] ) {
 			try {
 				auto h = getHistory( fd );
 				switch( opt ) {
-				case 'a':
-					after.push_back( h );
-					break;
 				case 'b':
 					before.push_back( h );
+					break;
+				case 's':
+					since.push_back( h );
 					break;
 				case 'r':
 					if( h.size() == 0 ) {
@@ -76,7 +74,7 @@ int main( int argc, char* const argv[] ) {
 						return 1;
 					}
 					h.resize( 1 );
-					after.push_back( h );
+					since.push_back( h );
 					break;
 				}
 			}
